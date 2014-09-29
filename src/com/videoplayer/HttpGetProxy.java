@@ -234,7 +234,6 @@ public class HttpGetProxy{
 							os.write(remote_reply, 0, bytes_read);
 							utils.sendToMP(remote_reply, bytes_read);
 						} catch (Exception e) {
-							Log.i(TAG, "10------------------");
 							Log.e(TAG, e.toString());
 							Log.e(TAG, Utils.getExceptionMessage(e));
 							break;// Send abnormal (normal) exit while
