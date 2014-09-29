@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">videoplayer</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+<string name="VideoView_error_text_invalid_progressive_playback">error</string>
+<string name="VideoView_error_text_unknown">error1</string>
+<string name="VideoView_error_button">error2</string>
+</resources>
