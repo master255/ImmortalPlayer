@@ -80,7 +80,7 @@ public class MainActivity extends Activity {
 			new File( getBufferDir()).mkdirs();
 			file1=Uri.decode(videoUrl.substring(videoUrl.lastIndexOf("/")));
 			// Initialize and start proxy server in new thread
-			proxy = new HttpGetProxy(getBufferDir(), BUFFER_SIZE, 1, file1,videoUrl);
+			proxy = new HttpGetProxy(getBufferDir(), BUFFER_SIZE, 300, file1,videoUrl);
 			//start player
 			String proxyUrl = proxy.getLocalURL();
 			textureView.setVideoPath(proxyUrl);
