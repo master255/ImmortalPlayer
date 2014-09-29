@@ -10,3 +10,4 @@ Features:
 3. Most simplest way and most fastest work;
 4. Play in background without using service e.t.c.
 5. Small size of code, no need to update player component
+6. Ready for deploy to any program. No need to use library.
