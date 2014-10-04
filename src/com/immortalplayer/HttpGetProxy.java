@@ -69,15 +69,13 @@ public class HttpGetProxy{
 	
 	public void stopProxy ()
 	{
-		try {
-			startProxy=false;
-			localServer.setSoTimeout(1);
-			while (prox.isAlive())
-		{}
-			localServer.setSoTimeout(0);
-		} catch (SocketException e1) {
-			e1.printStackTrace();
-		}
+		startProxy=false;
+			try {
+				localServer.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 	}
 	
 	public void setPaths (String dirPath, String file5, String url, long MaxSize,int maxnum)
