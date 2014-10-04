@@ -1,4 +1,4 @@
-package com.videoplayer;
+package com.immortalplayer;
 
 import java.io.File;
 
@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+
+import android.os.Environment;
 import android.util.Log;
 
 /**
@@ -57,20 +59,22 @@ public class Utils {
 	static protected void asynRemoveBufferFile(final String dirPath,final int maxnum, final long maxSize) {
 		new Thread() {
 			public void run() {
+				long freespace = Environment.getExternalStorageDirectory().getFreeSpace()-200000000;
+				long maxSize1=freespace>maxSize?maxSize:freespace;
 				List<File> lstBufferFile = Utils.getFilesSortByDate(dirPath);
 				while (lstBufferFile.size() > maxnum) {
 					Log.i(TAG, "---delete " + lstBufferFile.get(0).getPath());
 					lstBufferFile.get(0).delete();
 					lstBufferFile.remove(0);
 				}
-				long size=maxSize+1;
-				while (size>maxSize) {
+				long size=maxSize1+1;
+				while (size>maxSize1) {
 				size=0;
 				for (int i = 0; i < lstBufferFile.size(); i++) 
 				{
 					size=size+lstBufferFile.get(i).length();
 				}
-				if ((size>maxSize) && (lstBufferFile.size() > 1)) {
+				if ((size>maxSize1) && (lstBufferFile.size() > 1)) {
 					lstBufferFile.get(0).delete();
 					lstBufferFile.remove(0);
 					}

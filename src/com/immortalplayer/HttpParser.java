@@ -1,10 +1,11 @@
-package com.videoplayer;
+package com.immortalplayer;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.videoplayer.HttpGetProxyUtils.ProxyRequest;
-import com.videoplayer.HttpGetProxyUtils.ProxyResponse;
+import com.immortalplayer.HttpGetProxyUtils.ProxyRequest;
+import com.immortalplayer.HttpGetProxyUtils.ProxyResponse;
+
 
 
 import android.util.Log;
@@ -20,6 +21,7 @@ public class HttpParser {
 	final static private String CONTENT_RANGE_PARAMS="Content-Range: bytes ";
 	final static public String HTTP_BODY_END = "\r\n\r\n";
 	final static public String HTTP_RESPONSE_BEGIN = "HTTP/";
+	final static public String HTTP_DOCUMENT_BEGIN = "<html>";
 	final static public String HTTP_REQUEST_BEGIN = "GET ";
 	final static public String HTTP_REQUEST_LINE1_END = " HTTP/";
 	
@@ -126,28 +128,17 @@ public class HttpParser {
 		try {
 			// Get the starting position
 			String currentPosition = Utils.getSubString(text,CONTENT_RANGE_PARAMS, "-");
+			if (currentPosition.length()>0) {
 			result._currentPosition = Integer.valueOf(currentPosition);
 
 			// Get final position
 			String startStr = CONTENT_RANGE_PARAMS + currentPosition + "-";
 			String duration = Utils.getSubString(text, startStr, "/");
-			result._duration = Integer.valueOf(duration);
+			result._duration = Integer.valueOf(duration);}
+			else {result._currentPosition=0; result._duration=0;}
 		} catch (Exception ex) {
 			Log.e(TAG, Utils.getExceptionMessage(ex));
 		}
-		return result;
-	}
-	
-	/**
-	 * Replace Request packets carries Range location,"Range: bytes=0-" -> "Range: bytes=X-"
-	 * @param requestStr
-	 * @param position
-	 * @return
-	 */
-	public String modifyRequestRange(String requestStr,int position){
-		String str=Utils.getSubString(requestStr, RANGE_PARAMS, "-");
-		str=str+"-";
-		String result = requestStr.replaceAll(RANGE_PARAMS+str, RANGE_PARAMS+position+"-");
 		return result;
 	}
 	
@@ -172,7 +163,8 @@ public class HttpParser {
 			System.arraycopy(headerBuffer, startIndex, header, 0, header.length);
 			result.add(header);
 			
-			if (headerBufferLength > header.length) {//There are data
+			if ((headerBufferLength > header.length) && (responseStr.indexOf(HTTP_DOCUMENT_BEGIN, header.length)==-1)) {
+				//There are binary data
 				byte[] other = new byte[headerBufferLength - header.length];
 				System.arraycopy(headerBuffer, header.length, other, 0,other.length);
 				result.add(other);

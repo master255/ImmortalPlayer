@@ -3,9 +3,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/frame1"
-    tools:context="com.videoplayer.MainActivity$PlaceholderFragment" >
+    tools:context="com.immortalplayer.MainActivity$PlaceholderFragment" >
 
-    <com.videoplayer.player
+    <com.immortalplayer.player
         android:id="@+id/textureView1"
         android:layout_width="wrap_content"
         android:layout_height="200dp"

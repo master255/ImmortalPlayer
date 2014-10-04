@@ -1,4 +1,4 @@
-package com.videoplayer;
+package com.immortalplayer;
 
 import android.content.Context;
 import android.graphics.SurfaceTexture;

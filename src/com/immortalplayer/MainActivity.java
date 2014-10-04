@@ -1,6 +1,6 @@
-package com.videoplayer;
-import java.io.File;
+package com.immortalplayer;
 
+import java.io.File;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
@@ -55,6 +55,8 @@ public class MainActivity extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		int id = item.getItemId();
 		if (id == R.id.action_settings) {
+			System.gc();
+			System.exit(0);
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -62,9 +64,9 @@ public class MainActivity extends Activity {
 
 
 	public static class PlaceholderFragment extends Fragment  {
-		static private final long BUFFER_SIZE= 200*1024*1024;
+		static private final long BUFFER_SIZE= 700*1024*1024;
 		private HttpGetProxy proxy;
-		private String videoUrl ="http://master255.org/res/%d0%9a%d0%bb%d0%b8%d0%bf%d1%8b/S/SKRILLEX/Skrillex%20-%20Summit%20(feat.%20Ellie%20Goulding)%20%5bVideo%20by%20Pilerats%5d.mp4";
+		private String videoUrl ="http://master255.org/res/%d0%9a%d0%bb%d0%b8%d0%bf%d1%8b/D/DJ%20Snake%20&%20Lil%20Jon/DJ%20Snake%20&%20Lil%20Jon%20-%20Turn%20Down%20for%20What.mp4";
 		private String file1="";
 
 		public PlaceholderFragment() {}
@@ -78,12 +80,14 @@ public class MainActivity extends Activity {
 			textureView = (player)rootView.findViewById(R.id.textureView1);
 			//Create a pre-loaded video file storage folder
 			new File( getBufferDir()).mkdirs();
-			file1=Uri.decode(videoUrl.substring(videoUrl.lastIndexOf("/")));
+			file1=Uri.decode(videoUrl.substring(videoUrl.lastIndexOf("/")+1));
 			// Initialize and start proxy server in new thread
-			proxy = new HttpGetProxy(getBufferDir(), BUFFER_SIZE, 300, file1,videoUrl);
-			//start player
+			proxy = new HttpGetProxy(); 
+			proxy.setPaths(getBufferDir(),file1, videoUrl, BUFFER_SIZE, 300);
+			//start player 
 			String proxyUrl = proxy.getLocalURL();
-			textureView.setVideoPath(proxyUrl);
+			File file=new File (getBufferDir()+"/"+file1);
+			textureView.setVideoPath(file.exists()?file.getAbsolutePath():proxyUrl);
 			
 			textureView.setMediaController(new mediac(getActivity(), frame1));
 	        if ((player.sf != null)&&(pause==false)&&(textureView.getSurfaceTexture()==null)) {
@@ -95,7 +99,7 @@ public class MainActivity extends Activity {
 	            }
 	        });
 			return rootView;
-		}
+		} 
 		
 		static public String getBufferDir(){
 			String bufferDir = Environment.getExternalStorageDirectory()

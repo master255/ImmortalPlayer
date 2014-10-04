@@ -1,4 +1,4 @@
-package com.videoplayer;
+package com.immortalplayer;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -46,7 +46,6 @@ public class HttpGetProxyUtils {
 			result = httpParser.getProxyResponse(tmp_buffer, bytes_read);
 			if (result == null)
 				continue;// No Header exit this cycle
-
 			// Response received the Header
 			if (result._other != null) {// Send the remaining data
 				sendToMP(result._other);
