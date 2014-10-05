@@ -260,9 +260,9 @@ public class HttpGetProxy{
 				{
 					if (sentResponseHeader) {
 						try {// When you drag the progress bar, easy this exception, to disconnect and reconnect
-							utils.sendToMP(remote_reply, bytes_read);
 							os.write(remote_reply, 0, bytes_read);
 							proxyResponse._currentPosition += bytes_read;
+							utils.sendToMP(remote_reply, bytes_read);
 						} catch (Exception e) {
 							Log.e(TAG, e.toString());
 							Log.e(TAG, Utils.getExceptionMessage(e));
