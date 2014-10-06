@@ -17,15 +17,15 @@ import android.util.Log;
 public class HttpParser {
 	final static public String TAG = "HttpParser";
 	final static private String RANGE_PARAMS="Range: bytes=";
-	final static private String RANGE_PARAMS_0="Range: bytes=0-";
 	final static private String CONTENT_RANGE_PARAMS="Content-Range: bytes ";
+	final static private String CONTENT_LENGTH_PARAMS="Content-Length: ";
 	final static public String HTTP_BODY_END = "\r\n\r\n";
 	final static public String HTTP_RESPONSE_BEGIN = "HTTP/";
 	final static public String HTTP_DOCUMENT_BEGIN = "<html>";
 	final static public String HTTP_REQUEST_BEGIN = "GET ";
 	final static public String HTTP_REQUEST_LINE1_END = " HTTP/";
 	
-	private static final  int HEADER_BUFFER_LENGTH_MAX = 1024 * 50;
+	private static final  int HEADER_BUFFER_LENGTH_MAX = 1024 * 50;//like remote_reply in httpgetproxy
 	private byte[] headerBuffer = new byte[HEADER_BUFFER_LENGTH_MAX];
 	private int headerBufferLength=0;
 	
@@ -85,15 +85,20 @@ public class HttpParser {
 		else
 			result._body = result._body.replace(":" + localPort, ":"+ remotePort);
 		//Without Range then add the fill, easy to deal with later
+		String rangePosition="0";
 		if(result._body.contains(RANGE_PARAMS)==false)
-			result._body = result._body.replace(HTTP_BODY_END,
-					"\r\n"+RANGE_PARAMS_0+HTTP_BODY_END);
-		Log.i(TAG, result._body);
-
-		//Get Ranage position
-		String rangePosition=Utils.getSubString(result._body,RANGE_PARAMS,"-");
+		{
+			result._rangePosition=0;
+		} else {
+			rangePosition=Utils.getSubString(result._body,RANGE_PARAMS,"-");
+		try {
 		Log.i(TAG,"------->rangePosition:"+rangePosition);
 		result._rangePosition = Integer.valueOf(rangePosition);
+		} catch (Exception e) {
+			result._rangePosition=0;
+			e.printStackTrace();
+		}}
+		Log.i(TAG, result._body);
 		
 		return result;
 	}
@@ -127,15 +132,33 @@ public class HttpParser {
 		//Sample Content-Range: bytes 2267097-257405191/257405192
 		try {
 			// Get the starting position
-			String currentPosition = Utils.getSubString(text,CONTENT_RANGE_PARAMS, "-");
-			if (currentPosition.length()>0) {
-			result._currentPosition = Integer.valueOf(currentPosition);
-
-			// Get final position
-			String startStr = CONTENT_RANGE_PARAMS + currentPosition + "-";
-			String duration = Utils.getSubString(text, startStr, "/");
-			result._duration = Integer.valueOf(duration);}
-			else {result._currentPosition=0; result._duration=0;}
+			if(text.contains(CONTENT_RANGE_PARAMS)==false)
+			{
+				result._currentPosition=0;
+				if(text.contains(CONTENT_LENGTH_PARAMS)==true) {
+					String duration = Utils.getSubString(text, CONTENT_LENGTH_PARAMS, "\r\n");
+					try {
+						result._duration = Integer.valueOf(duration)-1;
+					} catch (Exception e) {
+					result._duration=0;
+						e.printStackTrace();
+					}
+				} else {result._duration=0;}
+			} else {
+				String currentPosition=Utils.getSubString(text,CONTENT_RANGE_PARAMS, "-");
+				try {
+				result._currentPosition = Integer.valueOf(currentPosition);
+				// Get final position
+				String startStr = CONTENT_RANGE_PARAMS + currentPosition + "-";
+				String duration = Utils.getSubString(text, startStr, "/");
+				result._duration = Integer.valueOf(duration);
+			} catch (Exception e) {
+			result._currentPosition=0; result._duration=0;
+				e.printStackTrace();
+			}
+			}
+			
+			
 		} catch (Exception ex) {
 			Log.e(TAG, Utils.getExceptionMessage(ex));
 		}
@@ -146,7 +169,6 @@ public class HttpParser {
 		if((headerBufferLength+length)>=headerBuffer.length){
 			clearHttpBody();
 		}
-		
 		System.arraycopy(source, 0, headerBuffer, headerBufferLength, length);
 		headerBufferLength+=length;
 		

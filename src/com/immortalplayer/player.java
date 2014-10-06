@@ -8,6 +8,7 @@ import android.media.MediaPlayer.OnBufferingUpdateListener;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
 import android.media.MediaPlayer.OnInfoListener;
+import android.os.Environment;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -17,7 +18,10 @@ import android.view.TextureView;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.MediaController;
+import android.widget.Toast;
 import android.widget.MediaController.MediaPlayerControl;
+
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -317,6 +321,25 @@ public class player extends TextureView
         new MediaPlayer.OnBufferingUpdateListener() {
             public void onBufferingUpdate(MediaPlayer mp, int percent) {
                 mCurrentBufferPercentage = percent;
+                //Only for Demo
+                if (mCurrentBufferPercentage==0) {
+
+	                Toast toast = Toast.makeText(getContext(), "For save file to cache watch (or rewind forward) video fully.", Toast.LENGTH_LONG); 
+    				toast.show();
+                }
+                if (mCurrentBufferPercentage==100) {
+                	release();
+                	Toast toast = Toast.makeText(getContext(), "File save to sdcard. Start play video from file.", Toast.LENGTH_LONG); 
+    				toast.show();
+    				
+    		        String path1=Environment.getExternalStorageDirectory()
+    		    			.getAbsolutePath() + "/ProxyBuffer/DJ Snake & Lil Jon - Turn Down for What.mp4";
+    		        if (new File (path1).exists()==true) {
+    		        	path=path1;
+    		        }
+    		        openVideo();
+    				 
+                }//
                 if (mCurrentState == STATE_ERROR) {
                 	mSeekWhenPrepared=mp.getCurrentPosition()+1000;
                 	if (skip==mSeekWhenPrepared) {mSeekWhenPrepared=mSeekWhenPrepared+skip1;

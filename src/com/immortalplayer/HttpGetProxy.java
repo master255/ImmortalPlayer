@@ -7,11 +7,11 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.net.SocketException;
 import java.util.ArrayList;
 
 import com.immortalplayer.HttpGetProxyUtils.ProxyRequest;
 import com.immortalplayer.HttpGetProxyUtils.ProxyResponse;
+
 
 import android.net.Uri;
 import android.util.Log;
@@ -29,12 +29,13 @@ public class HttpGetProxy{
 	private SocketAddress serverAddress;
 	private ProxyResponse proxyResponse=null;
 	private String mUrl;
-	private String mMediaFilePath, newPath;
+	private String mMediaFilePath, newPath, newPath1;
 	private File file, file1;
 	private Proxy proxy=null;
 	ArrayList<range> ranges = new ArrayList<range>();
 	private boolean startProxy, error=false;
 	private Thread prox;
+
 	/**
 	 * Initialize the proxy server, and start the proxy server
 	 */
@@ -69,29 +70,31 @@ public class HttpGetProxy{
 	
 	public void stopProxy ()
 	{
-		startProxy=false;
+			startProxy=false;
 			try {
-				localServer.close();
+				if (localServer!=null)
+				{localServer.close();
+				localServer=null;}
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 	}
 	
-	public void setPaths (String dirPath, String file5, String url, long MaxSize,int maxnum)
+	public void setPaths (String dirPath, String file5, String url, int MaxSize,int maxnum)
 	{
 		new File(dirPath).mkdirs();
-		Utils.asynRemoveBufferFile(dirPath, maxnum, MaxSize);
+		long maxsize1=MaxSize*1024*1024;
+		Utils.asynRemoveBufferFile(dirPath, maxnum, maxsize1);
 		mUrl=url;
 		mMediaFilePath = dirPath + "/" + file5;
-		file = new File(dirPath + "/" + file5);
+		file = new File(mMediaFilePath);
 		file1 = new File(dirPath + "/-" + file5);
 		error=false;
 	}
 	
 	public void startProxy() 
 	{
-		startProxy=true;
+		startProxy=true; 
 		Log.i(TAG, "1 start proxy");
 		prox=new Thread() {
 			public void run() {
@@ -151,7 +154,7 @@ public class HttpGetProxy{
 			HttpGetProxyUtils utils = null;
 			int bytes_read;
 			byte[] file_buffer = new byte[1024];
-			
+			File file2, file3;
 			byte[] local_request = new byte[1024];
 			byte[] remote_reply = new byte[1024 * 50];
 			ProxyRequest request = null;
@@ -173,7 +176,7 @@ public class HttpGetProxy{
 					serverAddress = new InetSocketAddress(remoteHost, HTTP_PORT);
 					utils = new HttpGetProxyUtils(sckPlayer, serverAddress);
 					isExists = file.exists();
-					if (mMediaFilePath!=newPath) {error=false; urlsize=0; ranges.clear(); ranges.trimToSize(); newPath=mMediaFilePath;}
+					if (mMediaFilePath!=newPath) {error=false; urlsize=0; ranges.clear(); ranges.trimToSize(); newPath=mMediaFilePath; newPath1=file1.getAbsolutePath();}
 
 					//Read from file
 					if ((isExists) || ((file1.exists()) && (error==true))) 
@@ -243,7 +246,7 @@ public class HttpGetProxy{
 						}
 						return;
 					}
-					error=false;
+					error=false; 
 
 					os = new RandomAccessFile(file1, "rwd");
 				} else {// MediaPlayer's request is invalid
@@ -254,6 +257,9 @@ public class HttpGetProxy{
 				// ------------------------------------------------------
 				// The feedback network server sent to the MediaPlayer, network server -> Proxy -> MediaPlayer
 				// ------------------------------------------------------
+				
+				//sckServer.setSoTimeout(200); // this parameter is experimental
+				//sckPlayer.setSoTimeout(200);
 				while ((sckServer != null) && 
 						((bytes_read = sckServer.getInputStream().read(remote_reply)) != -1) && 
 						(sckPlayer.isClosed()==false))
@@ -279,7 +285,7 @@ public class HttpGetProxy{
 					
 					
 					// Send the binary data
-					if (proxyResponse._other != null) {
+					if (proxyResponse._other != null) { 
 						utils.sendToMP(proxyResponse._other);
 						os.seek(proxyResponse._currentPosition);
 						os.write(proxyResponse._other, 0, proxyResponse._other.length);
@@ -298,8 +304,9 @@ public class HttpGetProxy{
 					if (os != null)
 					{
 						os.close();
-					
-					if (isExists==false) {
+					file2=new File (newPath);
+					file3=new File (newPath1);
+					if (file2.exists()==false) {
 						range r=new range();
 						r.setstart(request._rangePosition);
 						r.setend(proxyResponse._currentPosition);
@@ -317,7 +324,7 @@ public class HttpGetProxy{
 								}
 							}
 							if (urlsize==(h-1)) {
-								file1.renameTo(file);
+								file3.renameTo(file2);
 							}
 						}
 						}

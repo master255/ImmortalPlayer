@@ -64,7 +64,7 @@ public class MainActivity extends Activity {
 
 
 	public static class PlaceholderFragment extends Fragment  {
-		static private final long BUFFER_SIZE= 700*1024*1024;
+		static private final int BUFFER_SIZE= 700;
 		private HttpGetProxy proxy;
 		private String videoUrl ="http://master255.org/res/%d0%9a%d0%bb%d0%b8%d0%bf%d1%8b/D/DJ%20Snake%20&%20Lil%20Jon/DJ%20Snake%20&%20Lil%20Jon%20-%20Turn%20Down%20for%20What.mp4";
 		private String file1="";
