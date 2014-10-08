@@ -13,3 +13,5 @@ Features:
 6. Ready for deploy to any program. No need to use library.
 7. The player starts to play a video from a local file (if exist) and not from the internet.
 8. The player plays the corrupted files.
+
+Try from play market https://play.google.com/store/apps/details?id=com.immortalplayer
