@@ -3,11 +3,6 @@ package com.immortalplayer;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.immortalplayer.HttpGetProxyUtils.ProxyRequest;
-import com.immortalplayer.HttpGetProxyUtils.ProxyResponse;
-
-
-
 import android.util.Log;
 
 /**
@@ -25,7 +20,7 @@ public class HttpParser {
 	final static public String HTTP_REQUEST_BEGIN = "GET ";
 	final static public String HTTP_REQUEST_LINE1_END = " HTTP/";
 	
-	private static final  int HEADER_BUFFER_LENGTH_MAX = 1024 * 50;//like remote_reply in httpgetproxy
+	private static final  int HEADER_BUFFER_LENGTH_MAX = 1448*50;
 	private byte[] headerBuffer = new byte[HEADER_BUFFER_LENGTH_MAX];
 	private int headerBufferLength=0;
 	
@@ -43,6 +38,20 @@ public class HttpParser {
 		remotePort =rPort;
 		localHost=lHost;
 		localPort=lPort;
+	}
+	
+	static public class ProxyRequest{
+		//**Http Request Content*//*
+		public String _body;
+		//**RanageLocation*//*
+		public long _rangePosition;
+	}
+	
+	static public class ProxyResponse{
+		public byte[] _body;
+		public byte[] _other;
+		public long _currentPosition;
+		public long _duration;
 	}
 	
 	public void clearHttpBody(){
@@ -70,9 +79,10 @@ public class HttpParser {
 	/**
 	 * Request packet parsing conversion ProxyRequest
 	 * @param bodyBytes
+	 * @param urlsize 
 	 * @return
 	 */
-	public ProxyRequest getProxyRequest(byte[] bodyBytes){
+	public ProxyRequest getProxyRequest(byte[] bodyBytes, long urlsize){
 		ProxyRequest result=new ProxyRequest();
 		//Get Body
 		result._body=new String(bodyBytes);
@@ -94,6 +104,9 @@ public class HttpParser {
 		try {
 		Log.i(TAG,"------->rangePosition:"+rangePosition);
 		result._rangePosition = Integer.valueOf(rangePosition);
+		if ((result._rangePosition>=urlsize) && (urlsize>0)) {
+			result._body=result._body.replaceAll(RANGE_PARAMS+rangePosition, RANGE_PARAMS+"0");
+			result._rangePosition=0;}
 		} catch (Exception e) {
 			result._rangePosition=0;
 			e.printStackTrace();
@@ -169,6 +182,7 @@ public class HttpParser {
 		if((headerBufferLength+length)>=headerBuffer.length){
 			clearHttpBody();
 		}
+		
 		System.arraycopy(source, 0, headerBuffer, headerBufferLength, length);
 		headerBufferLength+=length;
 		

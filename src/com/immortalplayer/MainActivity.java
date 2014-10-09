@@ -1,19 +1,17 @@
 package com.immortalplayer;
 
-import java.io.File;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.MediaController;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
 	static View frame1;
@@ -64,10 +62,10 @@ public class MainActivity extends Activity {
 
 
 	public static class PlaceholderFragment extends Fragment  {
-		static private final int BUFFER_SIZE= 700;
+		static private final int BUFFER_SIZE= 700;//Mb
+		static private final int NUM_FILES= 20;//Count files in cache dir
 		private HttpGetProxy proxy;
 		private String videoUrl ="http://master255.org/res/%d0%9a%d0%bb%d0%b8%d0%bf%d1%8b/D/DJ%20Snake%20&%20Lil%20Jon/DJ%20Snake%20&%20Lil%20Jon%20-%20Turn%20Down%20for%20What.mp4";
-		private String file1="";
 
 		public PlaceholderFragment() {}
 
@@ -78,20 +76,24 @@ public class MainActivity extends Activity {
 					false);
 			frame1=rootView.findViewById(R.id.frame1);
 			textureView = (player)rootView.findViewById(R.id.textureView1);
-			//Create a pre-loaded video file storage folder
-			new File( getBufferDir()).mkdirs();
-			file1=Uri.decode(videoUrl.substring(videoUrl.lastIndexOf("/")+1));
 			// Initialize and start proxy server in new thread
 			proxy = new HttpGetProxy(); 
-			proxy.setPaths(getBufferDir(),file1, videoUrl, BUFFER_SIZE, 300);
+			proxy.setPaths("/ProxyBuffer", videoUrl, BUFFER_SIZE, NUM_FILES, getActivity().getApplicationContext());
 			//start player 
 			String proxyUrl = proxy.getLocalURL();
-			File file=new File (getBufferDir()+"/"+file1);
-			textureView.setVideoPath(file.exists()?file.getAbsolutePath():proxyUrl);
-			
+			textureView.setVideoPath(proxyUrl);
 			textureView.setMediaController(new mediac(getActivity(), frame1));
 	        if ((player.sf != null)&&(pause==false)&&(textureView.getSurfaceTexture()==null)) {
 	        textureView.setSurfaceTexture(player.sf);}
+            Toast toast = Toast.makeText(getActivity(), "For save file to SDCARD watch video fully (or rewind forward).", Toast.LENGTH_LONG); 
+			toast.show();
+	        textureView.setSeekListener(new player.SeekListener() {
+				@Override
+				public void onSeek(int msec) {
+					if (proxy!=null) {proxy.seek=true;} //more speed for seeking
+				}
+	        	
+	        });
 			textureView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
 	            @Override
 	            public void onPrepared(final MediaPlayer mp) {
@@ -100,12 +102,6 @@ public class MainActivity extends Activity {
 	        });
 			return rootView;
 		} 
-		
-		static public String getBufferDir(){
-			String bufferDir = Environment.getExternalStorageDirectory()
-			.getAbsolutePath() + "/ProxyBuffer";
-			return bufferDir;
-		}
 		
 	    public class mediac extends MediaController
 	    {

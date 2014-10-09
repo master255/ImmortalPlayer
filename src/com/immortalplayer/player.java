@@ -322,14 +322,9 @@ public class player extends TextureView
             public void onBufferingUpdate(MediaPlayer mp, int percent) {
                 mCurrentBufferPercentage = percent;
                 //Only for Demo
-                if (mCurrentBufferPercentage==0) {
-
-	                Toast toast = Toast.makeText(getContext(), "For save file to cache watch (or rewind forward) video fully.", Toast.LENGTH_LONG); 
-    				toast.show();
-                }
                 if (mCurrentBufferPercentage==100) {
                 	release();
-                	Toast toast = Toast.makeText(getContext(), "File save to sdcard. Start play video from file.", Toast.LENGTH_LONG); 
+                	Toast toast = Toast.makeText(getContext(), "File save to SDCARD. Start play video from file.", Toast.LENGTH_LONG); 
     				toast.show();
     				
     		        String path1=Environment.getExternalStorageDirectory()

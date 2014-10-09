@@ -59,7 +59,7 @@ public class Utils {
 	static protected void asynRemoveBufferFile(final String dirPath,final int maxnum, final long maxSize) {
 		new Thread() {
 			public void run() {
-				long freespace = Environment.getExternalStorageDirectory().getFreeSpace()-200000000;
+				long freespace = Environment.getExternalStorageDirectory().getFreeSpace()-200000000; //pessimist
 				long maxSize1=freespace>maxSize?maxSize:freespace;
 				List<File> lstBufferFile = Utils.getFilesSortByDate(dirPath);
 				while (lstBufferFile.size() > maxnum) {
