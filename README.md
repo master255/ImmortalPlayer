@@ -5,7 +5,7 @@ Complex logic, but it's simplest way to organize player with cache on sdcard and
 
 Features:
 
-1. Based on standart player;
+1. Based on standart player. Easy to use with different other player, but! Not recommended.;
 2. One thread to read, send and save to cache data;
 3. Most simplest way and most fastest work;
 4. Play in background without using service e.t.c.
