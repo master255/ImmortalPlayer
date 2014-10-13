@@ -39,8 +39,7 @@ public class MainActivity extends Activity {
 	} 
 	@Override
 	public void onResume() {
-		if ((player.sf!=null)&&(pause==true)&&(textureView.getSurfaceTexture()==null)) {
-		    textureView.setSurfaceTexture(player.sf);}
+		if (textureView!=null) {textureView.setDisplay();}
 		super.onResume();
 	}
 	@Override
@@ -78,13 +77,11 @@ public class MainActivity extends Activity {
 			textureView = (player)rootView.findViewById(R.id.textureView1);
 			// Initialize and start proxy server in new thread
 			proxy = new HttpGetProxy(); 
-			proxy.setPaths("/ProxyBuffer", videoUrl, BUFFER_SIZE, NUM_FILES, getActivity().getApplicationContext());
+			proxy.setPaths("/ProxyBuffer", videoUrl, BUFFER_SIZE, NUM_FILES, getActivity().getApplicationContext(), false);
 			//start player 
 			String proxyUrl = proxy.getLocalURL();
 			textureView.setVideoPath(proxyUrl);
 			textureView.setMediaController(new mediac(getActivity(), frame1));
-	        if ((player.sf != null)&&(pause==false)&&(textureView.getSurfaceTexture()==null)) {
-	        textureView.setSurfaceTexture(player.sf);}
             Toast toast = Toast.makeText(getActivity(), "For save file to SDCARD watch video fully (or rewind forward).", Toast.LENGTH_LONG); 
 			toast.show();
 	        textureView.setSeekListener(new player.SeekListener() {

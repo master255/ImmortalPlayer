@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import com.immortalplayer.HttpParser.ProxyRequest;
 import com.immortalplayer.HttpParser.ProxyResponse;
 
+
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -31,7 +32,7 @@ public class HttpGetProxy{
 	private SocketAddress serverAddress;
 	private String mUrl;
 	private String mMediaFilePath, newPath, newPath1, file2, cachefolder;
-	private File file, file1;
+	private File file, file1, file4;
 	private Proxy proxy=null;
 	private ArrayList<range> ranges = new ArrayList<range>();
 	private boolean startProxy, error=false;
@@ -88,7 +89,7 @@ public class HttpGetProxy{
 			}
 	}
 	
-	public void setPaths (String dirPath, String url, int MaxSize,int maxnum, Context ctxx)
+	public void setPaths (String dirPath, String url, int MaxSize,int maxnum, Context ctxx, boolean deltemp)
 	{
 		cachefolder=dirPath;
 		ctx=ctxx;
@@ -102,6 +103,12 @@ public class HttpGetProxy{
 		file = new File(mMediaFilePath);
 		file1 = new File(dirPath + "/" + file2+"-");
 		error=false;
+		if (newPath1!=null) {
+		file4=new File(newPath1);
+		if ((mMediaFilePath!=newPath) && (deltemp==true) && (file4.exists())) 
+		{
+			file4.delete();
+		}}
 	}
 	
 	public void startProxy() 
@@ -184,8 +191,9 @@ public class HttpGetProxy{
 			String header="";
 			RandomAccessFile os = null, fInputStream = null;
 			if (mMediaFilePath!=newPath) {
-				error=false; urlsize=0; ranges.clear(); ranges.trimToSize(); newPath=mMediaFilePath; newPath1=file1.getAbsolutePath();
-				}
+				Log.e("111", "---------New file----------");
+				Log.e("222", "---------New file----------");
+				error=false; urlsize=0; ranges.clear(); ranges.trimToSize(); newPath=mMediaFilePath; newPath1=file1.getAbsolutePath();}
 				try {
 					httpParser = new HttpParser(remoteHost, remotePort, LOCAL_IP_ADDRESS, localPort);
 					while (((bytes_read = sckPlayer.getInputStream().read(
@@ -269,7 +277,7 @@ public class HttpGetProxy{
 						}
 						return;
 					}
-					sckServer.setSoTimeout(1000); // without this flac not work.
+					sckServer.setSoTimeout(1500); // without this flac not work.
 					sckServer.setSoLinger(true, 500); //for correct to close sockets
 					sckPlayer.setSoLinger(true, 500);
 					error=false; 
@@ -291,7 +299,7 @@ public class HttpGetProxy{
 						try {// When you drag the progress bar, easy this exception, to disconnect and reconnect
 							os.write(remote_reply, 0, bytes_read);
 							proxyResponse._currentPosition += bytes_read;
-						utils.sendToMP(remote_reply, bytes_read);
+							utils.sendToMP(remote_reply, bytes_read);
 						} catch (Exception e) {
 							Log.e(TAG, e.toString());
 							Log.e(TAG, Utils.getExceptionMessage(e));
@@ -305,7 +313,8 @@ public class HttpGetProxy{
 					sentResponseHeader = true; 
 					// send http header to mediaplayer
 					utils.sendToMP(proxyResponse._body);
-
+					
+					
 					// Send the binary data
 					if (proxyResponse._other != null) {
 						utils.sendToMP(proxyResponse._other);
@@ -328,7 +337,7 @@ public class HttpGetProxy{
 					os.close();
 					file2=new File (newPath);
 					file3=new File (newPath1);
-					if (file2.exists()==false) {
+					if ((file2.exists()==false) && (request!=null) && (proxyResponse!=null)) {
 						range r=new range();
 						r.setstart(request._rangePosition);
 						r.setend(proxyResponse._currentPosition);

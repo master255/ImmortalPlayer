@@ -61,21 +61,21 @@ public class player extends TextureView
     private static final int STATE_PAUSED             = 4;
     private static final int STATE_PLAYBACK_COMPLETED = 5;
     private static int mCurrentState;
-    static public SurfaceTexture sf;
-    public static Surface sf1;
-    static public MediaPlayer mMediaPlayer;
-    private int         mVideoWidth;
-    private int         mVideoHeight;
+    private static SurfaceTexture sf;
+    private static Surface sf1;
+    private static MediaPlayer mMediaPlayer;
+    private static int         mVideoWidth;
+    private static int         mVideoHeight;
     private  MediaController mMediaController;
     private OnCompletionListener mOnCompletionListener;
     private MediaPlayer.OnPreparedListener mOnPreparedListener;
-    private int         mCurrentBufferPercentage;
+    private static int         mCurrentBufferPercentage;
     private OnErrorListener mOnErrorListener;
     private OnBufferingUpdateListener mOnBufferingUpdateListener;
     private PlayPauseListener mListener;
     private SeekListener mListener1;
     private OnInfoListener  mOnInfoListener;
-    private int mSeekWhenPrepared;  // recording the seek position while preparing
+    private static int mSeekWhenPrepared;  // recording the seek position while preparing
     private int skip, skip1=2000;
     private static boolean     mCanPause;
     private static boolean     mCanSeekBack;
@@ -87,11 +87,11 @@ public class player extends TextureView
 
     public player(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
+        initVideoView();
     }
 
     public player(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        initVideoView();
     }
 
     @Override
@@ -176,13 +176,9 @@ public class player extends TextureView
 
     private void initVideoView() {
     	setSurfaceTextureListener(mSurfaceTextureListener);
-    	if (mMediaPlayer!=null) {
-          	mVideoWidth = mMediaPlayer.getVideoWidth();
-              mVideoHeight = mMediaPlayer.getVideoHeight();
-              if (mVideoWidth != 0 && mVideoHeight != 0) {
-              	sf.setDefaultBufferSize(mVideoWidth, mVideoHeight);
-                  requestLayout();
-              }}
+    	if ((mMediaPlayer != null)&&(sf!=null)&&(getSurfaceTexture()==null)) {
+    		setSurfaceTexture(sf);
+        }
         setFocusable(true);
         setFocusableInTouchMode(true);
         requestFocus();
@@ -219,12 +215,7 @@ public class player extends TextureView
             mMediaPlayer.setDataSource(path);
             mMediaPlayer.prepareAsync();
             mCurrentState = STATE_PREPARING;
-            attachMediaController();
           } catch (IOException ex) {
-            mCurrentState = STATE_ERROR;
-            mErrorListener.onError(mMediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0);
-            return;
-          } catch (IllegalArgumentException ex) {
             mCurrentState = STATE_ERROR;
             mErrorListener.onError(mMediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0);
             return;
@@ -250,28 +241,23 @@ public class player extends TextureView
     MediaPlayer.OnVideoSizeChangedListener mSizeChangedListener =
         new MediaPlayer.OnVideoSizeChangedListener() {
             public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
-            	if (sf!=null) {
-                mVideoWidth = mp.getVideoWidth();
+            	mVideoWidth = mp.getVideoWidth();
                 mVideoHeight = mp.getVideoHeight();
-                if (mVideoWidth != 0 && mVideoHeight != 0) {
-                    sf.setDefaultBufferSize(mVideoWidth, mVideoHeight);
-                    requestLayout();
-                } 
-            }}
+                requestLayout();
+                }
         };
 
     MediaPlayer.OnPreparedListener mPreparedListener = new MediaPlayer.OnPreparedListener() {
         public void onPrepared(MediaPlayer mp) {
         	 mCurrentState = STATE_PREPARED;
-             
+             mVideoWidth = mp.getVideoWidth();
+             mVideoHeight = mp.getVideoHeight();
              mCanPause = mCanSeekBack = mCanSeekForward = true;
              int seekToPosition = mSeekWhenPrepared;
              if (seekToPosition != 0)
                {seekTo(seekToPosition);} else {seekTo (0);};
              if (mMediaController != null)
-               {mMediaController.setEnabled(true);
-               mMediaController.refreshDrawableState();
-               }
+               {mMediaController.setEnabled(true);}
              if (mOnPreparedListener != null)
                mOnPreparedListener.onPrepared(mp);
         }
@@ -400,15 +386,7 @@ public class player extends TextureView
     TextureView.SurfaceTextureListener mSurfaceTextureListener = new SurfaceTextureListener()
     { 
         @Override
-        public void onSurfaceTextureSizeChanged(final SurfaceTexture surface, final int width, final int height) {
-        	if (mMediaPlayer!=null) {
-            	mVideoWidth = mMediaPlayer.getVideoWidth();
-                mVideoHeight = mMediaPlayer.getVideoHeight();
-                if (mVideoWidth != 0 && mVideoHeight != 0) {
-                	surface.setDefaultBufferSize(mVideoWidth, mVideoHeight);
-                    requestLayout();
-                }}
-        }
+        public void onSurfaceTextureSizeChanged(final SurfaceTexture surface, final int width, final int height) {}
 
         @Override
         public void onSurfaceTextureAvailable(final SurfaceTexture surface, final int width, final int height) {
@@ -419,7 +397,6 @@ public class player extends TextureView
           }
         }
 
-        
         @Override
         public boolean onSurfaceTextureDestroyed(final SurfaceTexture surface) {
         	return false;
@@ -427,7 +404,13 @@ public class player extends TextureView
         @Override
         public void onSurfaceTextureUpdated(final SurfaceTexture surface) {}
     };
-
+    
+    public void setDisplay()
+    {
+  	  if ((mMediaPlayer != null)&&(sf!=null)&&(getSurfaceTexture()==null)) {
+  		      setSurfaceTexture(sf);
+  	      }
+    }
     /*
      * release the media player in any state
      */
@@ -539,7 +522,6 @@ public class player extends TextureView
         if (isInPlaybackState()) {
             return mMediaPlayer.getDuration();
         }
-
         return -1;
     }
 
