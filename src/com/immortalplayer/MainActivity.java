@@ -64,8 +64,9 @@ public class MainActivity extends Activity {
 		static private final int BUFFER_SIZE= 700;//Mb
 		static private final int NUM_FILES= 20;//Count files in cache dir
 		private HttpGetProxy proxy;
-		private String videoUrl ="http://master255.org/res/%d0%9a%d0%bb%d0%b8%d0%bf%d1%8b/D/DJ%20Snake%20&%20Lil%20Jon/DJ%20Snake%20&%20Lil%20Jon%20-%20Turn%20Down%20for%20What.mp4";
-
+		private String videoUrl ="ftp://master255.org/%d0%9a%d0%bb%d0%b8%d0%bf%d1%8b/D/DJ%20Snake%20&%20Lil%20Jon/DJ%20Snake%20&%20Lil%20Jon%20-%20Turn%20Down%20for%20What.mp4";
+		private String ftplogin = "user", ftppass = "123";
+		
 		public PlaceholderFragment() {}
 
 		@Override
@@ -76,8 +77,8 @@ public class MainActivity extends Activity {
 			frame1=rootView.findViewById(R.id.frame1);
 			textureView = (player)rootView.findViewById(R.id.textureView1);
 			// Initialize and start proxy server in new thread
-			proxy = new HttpGetProxy(); 
-			proxy.setPaths("/ProxyBuffer", videoUrl, BUFFER_SIZE, NUM_FILES, getActivity().getApplicationContext(), false);
+			proxy = new HttpGetProxy();
+			proxy.setPaths("/ProxyBuffer", videoUrl, BUFFER_SIZE, NUM_FILES, getActivity().getApplicationContext(), false, ftplogin, ftppass, false);
 			//start player 
 			String proxyUrl = proxy.getLocalURL();
 			textureView.setVideoPath(proxyUrl);
@@ -88,6 +89,11 @@ public class MainActivity extends Activity {
 				@Override
 				public void onSeek(int msec) {
 					if (proxy!=null) {proxy.seek=true;} //more speed for seeking
+				}
+
+				@Override
+				public void onSeekComplete(MediaPlayer mp) {
+
 				}
 	        	
 	        });
