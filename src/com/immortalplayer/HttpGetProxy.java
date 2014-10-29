@@ -139,7 +139,7 @@ public class HttpGetProxy
 		dirPath = Environment.getExternalStorageDirectory().getAbsolutePath()
 				+ dirPath;
 		new File(dirPath).mkdirs();
-		long maxsize1 = MaxSize * 1024 * 1024;
+		long maxsize1 = MaxSize * 1024L * 1024L;
 		Utils.asynRemoveBufferFile(dirPath, maxnum, maxsize1);
 		mUrl = url;
 		file2 = Uri.decode(mUrl.substring(mUrl.lastIndexOf("/") + 1));
