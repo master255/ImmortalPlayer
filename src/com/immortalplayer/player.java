@@ -125,10 +125,7 @@ public class player extends TextureView implements
 			sf = surface;
 			if (mMediaPlayer != null)
 			{
-				if (sf1 == null)
-				{
-					sf1 = new Surface(surface);
-				}
+				sf1 = new Surface(surface);
 				mMediaPlayer.setSurface(sf1);
 			}
 		}
