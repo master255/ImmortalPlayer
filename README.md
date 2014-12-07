@@ -15,4 +15,7 @@ Features:
 8. The player starts to play a video from a local file (if exist) and not from the internet.
 9. The player plays the corrupted files.
 
-Try from play market https://play.google.com/store/apps/details?id=com.immortalplayer
+Try from play market Android 4.1.1+ (api:16+): https://play.google.com/store/apps/details?id=com.immortalplayer
+
+Known programs work on ImmortalPlayer:
+https://play.google.com/store/apps/details?id=com.medialibrary.mycollection
