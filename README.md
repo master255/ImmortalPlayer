@@ -1,4 +1,4 @@
-ImmortalPlayer 2.5 (audio/video, HTTP/FTP)
+ImmortalPlayer <b>3.0</b> (audio/video, HTTP/FTP)
 ==============
 
 Complex logic, but it's simplest way to organize player with cache on sdcard and with play in background.
