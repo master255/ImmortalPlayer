@@ -15,7 +15,7 @@ Features:
 8. The player starts to play a video from a local file (if exist) and not from the internet.
 9. The player plays the corrupted files.
 10. Player API 16+, Proxy API 14+.
-11. Automatically search and streaming current file in peering networks.
+11. Automatically search and streaming current file from peering networks!
 
 Try from play market Android 4.1.1+ (api:16+): https://play.google.com/store/apps/details?id=com.immortalplayer
 
