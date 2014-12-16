@@ -78,7 +78,7 @@ public class MainActivity extends Activity {
 			textureView = (player)rootView.findViewById(R.id.textureView1);
 			// Initialize and start proxy server in new thread
 			proxy = new HttpGetProxy();
-			proxy.setPaths("/ProxyBuffer", videoUrl, BUFFER_SIZE, NUM_FILES, getActivity().getApplicationContext(), false, ftplogin, ftppass, false);
+			proxy.setPaths("/ProxyBuffer", videoUrl, BUFFER_SIZE, NUM_FILES, getActivity().getApplicationContext(), false, ftplogin, ftppass, false, true, "5FQTRE5AIPHN7K5Z4D3HTN653FXLCPH3VDVBU5A");
 			//start player 
 			String proxyUrl = proxy.getLocalURL();
 			textureView.setVideoPath(proxyUrl);

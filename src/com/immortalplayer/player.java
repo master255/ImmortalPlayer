@@ -60,7 +60,7 @@ public class player extends TextureView implements
 	private static boolean mCanPause;
 	private static boolean mCanSeekBack;
 	private static boolean mCanSeekForward;
-    private int skip, skip1=2000;
+	private int skip, skip1 = 2000;
 
 	public player(Context context)
 	{
@@ -125,7 +125,10 @@ public class player extends TextureView implements
 			sf = surface;
 			if (mMediaPlayer != null)
 			{
-				sf1 = new Surface(surface);
+				if (sf1 == null)
+				{
+					sf1 = new Surface(surface);
+				}
 				mMediaPlayer.setSurface(sf1);
 			}
 		}
@@ -168,29 +171,38 @@ public class player extends TextureView implements
 	{
 		public void onBufferingUpdate(MediaPlayer mp, int percent)
 		{
-			//Only for Demo
-            if (mCurrentBufferPercentage==100) {
-            	release();
-            	Toast toast = Toast.makeText(getContext(), "File save to SDCARD. Start play video from file.", Toast.LENGTH_LONG); 
+			// Only for Demo
+			if (mCurrentBufferPercentage == 100)
+			{
+				release();
+				Toast toast = Toast.makeText(getContext(),
+						"File save to SDCARD. Start play video from file.",
+						Toast.LENGTH_LONG);
 				toast.show();
-				
-		        String path1=Environment.getExternalStorageDirectory()
-		    			.getAbsolutePath() + "/ProxyBuffer/DJ Snake & Lil Jon - Turn Down for What.mp4";
-		        if (new File (path1).exists()==true) {
-		        	path=path1;
-		        }
-		        openVideo();
-				 
-            }//
-            if (mCurrentState == STATE_ERROR) {
-            	mSeekWhenPrepared=mp.getCurrentPosition()+1000;
-            	if (skip==mSeekWhenPrepared) {mSeekWhenPrepared=mSeekWhenPrepared+skip1;
-            	skip1=skip1+1000;
-            	} else {skip1=2000;}
-            	skip=mSeekWhenPrepared;
-            	release();
-            	openVideo();
-            }
+				String path1 = Environment.getExternalStorageDirectory()
+						.getAbsolutePath()
+						+ "/ProxyBuffer/DJ Snake & Lil Jon - Turn Down for What.mp4";
+				if (new File(path1).exists() == true)
+				{
+					path = path1;
+				}
+				openVideo();
+			}//
+			if (mCurrentState == STATE_ERROR)
+			{
+				mSeekWhenPrepared = mp.getCurrentPosition() + 1000;
+				if (skip == mSeekWhenPrepared)
+				{
+					mSeekWhenPrepared = mSeekWhenPrepared + skip1;
+					skip1 = skip1 + 1000;
+				} else
+				{
+					skip1 = 2000;
+				}
+				skip = mSeekWhenPrepared;
+				release();
+				openVideo();
+			}
 			mCurrentBufferPercentage = percent;
 			if (mOnBufferingUpdateListener != null)
 				mOnBufferingUpdateListener.onBufferingUpdate(mp, percent);

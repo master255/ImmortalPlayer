@@ -8,7 +8,6 @@ import java.util.Comparator;
 import java.util.List;
 
 import android.os.Environment;
-import android.util.Log;
 
 /**
  * Tools
@@ -48,9 +47,6 @@ public class Utils
 		for (int i = 0; i < files.length; i++)
 		{
 			result.add(files[i]);
-			Log.i(TAG,
-					i + ":" + files[i].lastModified() + "---"
-							+ files[i].getPath());
 		}
 		return result;
 	}
@@ -61,9 +57,13 @@ public class Utils
 	 * @param dirPath cache file folder path
 	 * @param maxnum maximum number of cached files
 	 * @param maxSize
+	 * @param pref
+	 * @param deltemp
+	 * @param string
 	 */
 	static protected void asynRemoveBufferFile(final String dirPath,
-			final int maxnum, final long maxSize)
+			final int maxnum, final long maxSize, final boolean deltemp,
+			final String pref, final String current)
 	{
 		new Thread()
 		{
@@ -73,9 +73,20 @@ public class Utils
 						.getFreeSpace() - 200000000; // pessimist
 				long maxSize1 = freespace > maxSize ? maxSize : freespace;
 				List<File> lstBufferFile = Utils.getFilesSortByDate(dirPath);
+				if (deltemp == true)
+				{
+					for (int i = 0; i < lstBufferFile.size(); i++)
+					{
+						if ((lstBufferFile.get(i).getName().endsWith(pref))
+								&& (!lstBufferFile.get(i).getPath().equals(current)))
+						{
+							lstBufferFile.get(i).delete();
+							lstBufferFile.remove(i);
+						}
+					}
+				}
 				while (lstBufferFile.size() > maxnum)
 				{
-					Log.i(TAG, "---delete " + lstBufferFile.get(0).getPath());
 					lstBufferFile.get(0).delete();
 					lstBufferFile.remove(0);
 				}
