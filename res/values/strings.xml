@@ -6,4 +6,5 @@
 <string name="VideoView_error_text_invalid_progressive_playback">error</string>
 <string name="VideoView_error_text_unknown">error1</string>
 <string name="VideoView_error_button">error2</string>
+<string name="delay_dc">Delay DC++: </string>
 </resources>

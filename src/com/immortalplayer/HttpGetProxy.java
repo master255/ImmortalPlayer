@@ -1,6 +1,7 @@
 package com.immortalplayer;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,11 +13,17 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserFactory;
+
+
+
 
 import com.immortalplayer.HttpParser.ProxyRequest;
 import com.immortalplayer.HttpParser.ProxyResponse;
@@ -25,11 +32,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 
 public class HttpGetProxy
 {
-	private final static String TAG = "HttpGetProxy";
 	private final static String LOCAL_IP_ADDRESS = "127.0.0.1";
 	private final static int HTTP_PORT = 80;
 	private final static String pref = "-ml";
@@ -38,16 +47,16 @@ public class HttpGetProxy
 	private final static String Hub = "dc.filimania.com";
 	private final static int dcPort = 411;
 	private String nick = "MediaLibrary";
-	public String dcErrorTxt="";
+	public String dcErrorTxt = "";
 	// Other
 	private int remotePort = -1, postFix = 0;
-	private long urlsize = 0;
+	private long urlsize = 0, lastStart, now, maxFile;
 	private int localPort, portUser;
 	private ServerSocket localServer = null;
 	private SocketAddress serverAddress, p2padrr;
 	private String mUrl, ftplogin, ftppass, remoteHost, remotePath;
 	private String mMediaFilePath, newPath, newPath1, file2, cachefolder, TTH,
-			ipUser = "", nickUser = "";
+			ipUser = "", nickUser = "", xmlDir1 = "", delayDC;
 	private File file, file1;
 	private Proxy proxy = null;
 	private ArrayList<range> ranges = new ArrayList<range>();
@@ -58,6 +67,11 @@ public class HttpGetProxy
 	private FTPClient mFTPClient;
 	private InputStream ftp = null;
 	private Socket p2pServer = null, sckUser = null;
+	private Uri originalURI;
+	private XmlPullParser xpp;
+	private XmlPullParserFactory factory;
+	private TextView textProgress;
+	private Handler handler = new Handler();
 
 	/**
 	 * Initialize the proxy server, and start the proxy server
@@ -107,14 +121,20 @@ public class HttpGetProxy
 			return file.getAbsolutePath();
 		} else
 		{
-			Uri originalURI = Uri.parse(mUrl);
+			originalURI = Uri.parse(mUrl);
 			remoteHost = originalURI.getHost();
 			remotePath = originalURI.getPath();
-			String localUrl = mUrl.replace(remoteHost,
-					LOCAL_IP_ADDRESS + ":" + localPort).toLowerCase();
-			if (localUrl.contains("ftp://") == true)
+			String localUrl = mUrl.replace(remoteHost, LOCAL_IP_ADDRESS + ":"
+					+ localPort);
+			if (localUrl.toLowerCase().contains("ftp://") == true)
 			{
-				localUrl = localUrl.replaceFirst("ftp://", "http://");
+				if (localUrl.contains("ftp://") == true)
+				{
+					localUrl = localUrl.replaceFirst("ftp://", "http://");
+				} else if (localUrl.contains("FTP://") == true)
+				{
+					localUrl = localUrl.replaceFirst("FTP://", "http://");
+				}
 				ftpenable = true;
 			} else
 			{
@@ -140,21 +160,25 @@ public class HttpGetProxy
 		}
 	}
 
-	public void setPaths(String dirPath, String url, int MaxSize, int maxnum,
-			Context ctxx, boolean deltemp, String loginftp, String pasftp,
-			boolean ftpclose, boolean useDC1, String TTH1)
+	public void setPaths(String dirPath, String url, int maxSize, int maxnum,
+			int maxFile1, Context ctxx, boolean deltemp, String loginftp,
+			String pasftp, boolean ftpclose, boolean useDC1, String xmlDir,
+			TextView textProgress1, String delayDC1)
 	{
 		close = ftpclose;
 		cachefolder = dirPath;
 		ctx = ctxx;
 		ftplogin = loginftp;
 		ftppass = pasftp;
-		TTH = TTH1;
+		xmlDir1 = xmlDir;
 		useDC = useDC1;
+		delayDC = delayDC1;
+		maxFile = maxFile1 * 1048576;
+		textProgress = textProgress1;
 		dirPath = Environment.getExternalStorageDirectory().getAbsolutePath()
 				+ dirPath;
 		new File(dirPath).mkdirs();
-		long maxsize1 = MaxSize * 1024L * 1024L;
+		long maxsize1 = maxSize * 1024L * 1024L;
 		mUrl = url;
 		file2 = Uri.decode(mUrl.substring(mUrl.lastIndexOf("/") + 1));
 		mMediaFilePath = dirPath + "/" + file2;
@@ -279,9 +303,9 @@ public class HttpGetProxy
 					}
 					ftp = null;
 				}
-			} catch (IOException e1)
+			} catch (IOException e)
 			{
-				e1.printStackTrace();
+				e.printStackTrace();
 			}
 		}
 
@@ -316,7 +340,7 @@ public class HttpGetProxy
 			return rezult;
 		}
 
-		private boolean connectDC()
+		public boolean connectDC()
 		{
 			p2padrr = new InetSocketAddress(Hub, dcPort);
 			p2pServer = new Socket();
@@ -334,7 +358,7 @@ public class HttpGetProxy
 								+ lockToKey(str)
 								+ "$ValidateNick "
 								+ nick
-								+ "|" + "$Version 1,0091|$MyINFO $ALL " + nick + " <FlylinkDC++ V:r502-x64,M:P,H:1/0/0,S:15>$ $100 $$600000000000$|")
+								+ "|" + "$Version 1,0091|$MyINFO $ALL " + nick + " <ImmortalPlayer V:3,M:P,H:1/0/0,S:15>$ $100 $$600000000000$|")
 								.getBytes());
 				p2pServer.getOutputStream().flush();
 				p2preq = new byte[1024 * 10];
@@ -460,6 +484,7 @@ public class HttpGetProxy
 				errorDC = false;
 				nickUser = "";
 				ipUser = "";
+				TTH = "";
 				portUser = 0;
 				urlsize = 0;
 				ranges.clear();
@@ -573,166 +598,356 @@ public class HttpGetProxy
 						if (connectDC() == false)
 						{
 							errorDC = true;
-							dcErrorTxt="No connect";
+							dcErrorTxt = "No connect";
 							throw new NullPointerException("No connect");
 						}
 					}
-					try
-					{
-						os = new RandomAccessFile(file1, "rwd");
-						os.seek(request._rangePosition);
-					} catch (FileNotFoundException e2)
-					{
-						e2.printStackTrace();
-					}
-					if (nickUser.length() < 1)
-					{// then get nick user
-						p2pServer.getOutputStream()
-								.write(("$Search Hub:" + nick + " F?T?0?9?TTH:"
-										+ TTH + "|").getBytes());
-						p2pServer.getOutputStream().flush();
-						p2preq = new byte[1024 * 10];
-						retr = 20;// number of answers to searches
-						while ((bytes_read = p2pServer.getInputStream().read(
-								p2preq)) != -1)
+					if (TTH.equals("") == true)
+					{// Get TTH from XML File. Utility for create xml
+						// file:https://github.com/master255/SimplyServer
+						File xmlFile = new File(xmlDir1, originalURI.getHost()
+								+ ".xml");
+						if ((xmlFile != null) && (xmlFile.exists() == true))
 						{
-							str = new String(p2preq, CHARENCODING);
-							//Log.d("999", str.substring(0, bytes_read));
-							if (str.contains("$SR"))
+							int eventType = 0, pathInd = 0, depth = 0;
+							List<String> pathSl = originalURI.getPathSegments();
+							boolean exitC = false;
+							FileInputStream xmlFile1 = null;
+							if (factory == null)
 							{
-								nickUser = str.substring(
-										str.indexOf("$SR") + 4, str.indexOf(
-												" ", str.indexOf("$SR") + 4));
-								urlsize = Integer
-										.parseInt(str.substring(
-												str.indexOf("",
-														str.indexOf("$SR")) + 1,
-												str.indexOf(
-														" ",
-														str.indexOf("", str
-																.indexOf("$SR")) + 1)));
-								break;
+								factory = XmlPullParserFactory.newInstance();
+								xpp = factory.newPullParser();
 							}
-							retr = retr - 1;
-							if (retr == 0)
+							xmlFile1 = new FileInputStream(xmlFile);
+							xpp.setInput(xmlFile1, null);
+							eventType = xpp.getEventType();
+							while ((eventType != XmlPullParser.END_DOCUMENT)
+									&& (exitC == false)
+									&& (mMediaFilePath == newPath))
 							{
-								errorDC = true;
-								dcErrorTxt="No search result";
-								throw new NullPointerException(
-										"No search result");
+								if ((depth > 0) && (xpp.getDepth() > depth + 1))
+								{
+									eventType = xpp.next();
+									continue;
+								}
+								if (eventType == XmlPullParser.START_TAG)
+								{
+									if ((xpp.getName().equals("Directory"))
+											&& (xpp.getAttributeCount() > 0)
+											&& (xpp.getAttributeValue(null,
+													"Name").equals(pathSl
+													.get(pathInd))))
+									{
+										depth = xpp.getDepth();
+										pathInd = pathInd + 1;
+									} else if ((xpp.getName().equals("File"))
+											&& (pathInd == pathSl.size() - 1)
+											&& (xpp.getAttributeCount() > 0)
+											&& (xpp.getAttributeValue(null,
+													"Name").equals(pathSl
+													.get(pathInd))))
+									{
+										TTH = xpp
+												.getAttributeValue(null, "TTH");
+										exitC = true;
+									}
+								} else if ((eventType == XmlPullParser.END_TAG)
+										&& (xpp.getName().equals("Directory"))
+										&& (xpp.getDepth() == depth))
+								{
+									errorDC = true;
+									exitC = true;
+								}
+								eventType = xpp.next();
+							}
+							xmlFile1.close();
+						}
+					}
+					if (errorDC == false)
+					{
+						if (nickUser.length() < 1)
+						{// then get nick user
+							now = System.currentTimeMillis();
+							if (lastStart > 0)
+							{
+								handler.post(new Runnable()
+								{
+									public void run()
+									{
+										textProgress
+												.setVisibility(View.VISIBLE);
+									}
+								});
+								int i = 0;
+								while (((now - lastStart) < 30000)
+										&& (mMediaFilePath == newPath))
+								{
+									now = System.currentTimeMillis();
+									if (i > 100)
+									{
+										handler.post(new Runnable()
+										{
+											public void run()
+											{
+												textProgress.setText(delayDC
+														+ Float.toString((float) ((301 - (float) Math
+																.round((now - lastStart) / 100)) / 10)));
+											}
+										});
+										i = 0;
+									}
+									i++;
+								}
+								handler.post(new Runnable()
+								{
+									public void run()
+									{
+										textProgress.setVisibility(View.GONE);
+									}
+								});
+							}
+							if (mMediaFilePath == newPath)
+							{
+								lastStart = now;
+								try
+								{
+									p2pServer.getInputStream().skip(
+											p2pServer.getInputStream()
+													.available());
+									p2pServer
+											.getOutputStream()
+											.write(("$Search Hub:" + nick
+													+ " F?T?0?9?TTH:" + TTH + "|")
+													.getBytes());
+									p2pServer.getOutputStream().flush();
+								} catch (Exception e)
+								{
+									connectDC();
+									p2pServer.getInputStream().skip(
+											p2pServer.getInputStream()
+													.available());
+									p2pServer
+											.getOutputStream()
+											.write(("$Search Hub:" + nick
+													+ " F?T?0?9?TTH:" + TTH + "|")
+													.getBytes());
+									p2pServer.getOutputStream().flush();
+									e.printStackTrace();
+								}
 							}
 							p2preq = new byte[1024 * 10];
+							retr = 20;// number of answers to searches
+							while (((bytes_read = p2pServer.getInputStream()
+									.read(p2preq)) != -1)
+									&& (mMediaFilePath == newPath))
+							{
+								str = new String(p2preq, CHARENCODING);
+								str = str.substring(0, bytes_read);
+								// Log.d("999", Integer.toString(bytes_read));
+								// Log.d("888", str);
+								if (str.contains("$SR"))
+								{
+									nickUser = str.substring(
+											str.indexOf("$SR") + 4,
+											str.indexOf(" ",
+													str.indexOf("$SR") + 4));
+									urlsize = Integer
+											.parseInt(str.substring(
+													str.indexOf("",
+															str.indexOf("$SR")) + 1,
+													str.indexOf(
+															" ",
+															str.indexOf(
+																	"",
+																	str.indexOf("$SR")) + 1)));
+									break;
+								}
+								retr = retr - 1;
+								if (retr == 0)
+								{
+									errorDC = true;
+									dcErrorTxt = "No search result";
+									throw new NullPointerException(
+											"No search result");
+								}
+								p2preq = new byte[1024 * 10];
+							}
 						}
-					}
-					p2pServer.getOutputStream().write(
-							("$RevConnectToMe " + nick + " " + nickUser + "|")
-									.getBytes());
-					p2pServer.getOutputStream().flush();
-					p2preq = new byte[1024 * 10];
-					retr = 30;// number of answers (user) to searches
-					while ((bytes_read = p2pServer.getInputStream()
-							.read(p2preq)) != -1)
-					{
+						try
+						{
+							p2pServer.getOutputStream()
+									.write(("$RevConnectToMe " + nick + " "
+											+ nickUser + "|").getBytes());
+							p2pServer.getOutputStream().flush();
+						} catch (Exception e)
+						{
+							connectDC();
+							p2pServer.getInputStream().skip(
+									p2pServer.getInputStream().available());
+							p2pServer.getOutputStream()
+									.write(("$RevConnectToMe " + nick + " "
+											+ nickUser + "|").getBytes());
+							p2pServer.getOutputStream().flush();
+						}
+						seek = false;
+						retr = 20;
+						do
+						{
+							if ((ipUser.equals("") == true) || (portUser == 0))
+							{
+								p2preq = new byte[1024 * 10];
+								retr = 30;// number of answers (user) to searches
+								while (((bytes_read = p2pServer
+										.getInputStream().read(p2preq)) != -1)
+										&& (mMediaFilePath == newPath))
+								{
+									str = new String(p2preq, CHARENCODING);
+									// Log.d("999", str.substring(0, bytes_read));
+									str = str.substring(0, bytes_read);
+									if (str.contains("$ConnectToMe " + nick))
+									{
+										ipUser = str
+												.substring(
+														str.indexOf("$ConnectToMe "
+																+ nick)
+																+ ("$ConnectToMe " + nick)
+																		.length()
+																+ 1,
+														str.indexOf(
+																":",
+																str.indexOf("$ConnectToMe "
+																		+ nick)
+																		+ ("$ConnectToMe " + nick)
+																				.length()
+																		+ 1));
+										portUser = Integer
+												.parseInt(str.substring(
+														str.indexOf(
+																":",
+																str.indexOf("$ConnectToMe "
+																		+ nick)
+																		+ ("$ConnectToMe " + nick)
+																				.length()
+																		+ 1) + 1,
+														str.indexOf(
+																"|",
+																str.indexOf(
+																		":",
+																		str.indexOf("$ConnectToMe "
+																				+ nick)
+																				+ ("$ConnectToMe " + nick)
+																						.length()
+																				+ 1))));
+										break;
+									}
+									p2preq = new byte[1024 * 10];
+									retr = retr - 1;
+									if (retr == 0)
+									{
+										errorDC = true;
+										dcErrorTxt = "No answer from User";
+										throw new NullPointerException(
+												"No answer from User");
+									}
+								}
+							}
+							sckUser = new Socket();
+							sckUser.setSoTimeout(1500);
+							InetSocketAddress p2padrr1 = new InetSocketAddress(
+									ipUser, portUser);
+							sckUser.connect(p2padrr1);
+							sckUser.getOutputStream()
+									.write(("$MyNick "
+											+ nick
+											+ "|$Lock EXTENDEDPROTOCOLABCABCABCABCABCABC Pk=DCPLUSPLUS0.785ABCABCRef=dchub://"
+											+ Hub
+											+ "|$Supports MiniSlots ADCGet TTHL TTHF|$Direction Download 7777|$Key 牙盃A 驯崩򣶖 0 0 0 0 0|"
+											+ "$ADCGET file TTH/" + TTH + " "
+											+ request._rangePosition + " -1|")
+											.getBytes());
+							sckUser.getOutputStream().flush();
+							// removes $ADCSND
+							p2preq = new byte[1024 * 10];
+							bytes_read = sckUser.getInputStream().read(p2preq);
+							retr = retr - 1;
+							if (bytes_read == -1)
+							{
+								sckUser.close();
+								sckUser = null;
+								Log.d("999", Integer.toString(bytes_read));
+								Long cur = System.currentTimeMillis();
+								while ((System.currentTimeMillis() - cur) < 200);
+							}
+						} while ((retr > 0) && (bytes_read == -1)
+								&& (seek == false)
+								&& (mMediaFilePath == newPath));
+						// header
+						Log.d("999", Integer.toString(bytes_read));
+						if ((request._rangePosition > 0)
+								|| (request._overRange == true))
+						{
+							header = "HTTP/1.1 206 Partial Content\r\nAccept-Ranges: bytes\r\nContent-Length: "
+									+ Long.toString(urlsize
+											- request._rangePosition)
+									+ "\r\nContent-Range: bytes "
+									+ Long.toString(request._rangePosition)
+									+ "-"
+									+ Long.toString(urlsize - 1)
+									+ "/"
+									+ urlsize
+									+ "\r\nContent-Type: application/octet-stream\r\n\r\n";
+						} else
+						{
+							header = "HTTP/1.1 200 OK\r\nAccept-Ranges: bytes\r\nContent-Length: "
+									+ Long.toString(urlsize)
+									+ "\r\nContent-Disposition: attachment\r\nContent-Type: application/octet-stream\r\n\r\n";
+						}
+						sckPlayer.getOutputStream().write(header.getBytes(), 0,
+								header.length());
 						str = new String(p2preq, CHARENCODING);
-						//Log.d("999", str.substring(0, bytes_read));
-						if (str.contains("$ConnectToMe " + nick))
+						if (str.contains("$ADCSND"))
 						{
-							ipUser = str.substring(
-									str.indexOf("$ConnectToMe " + nick)
-											+ ("$ConnectToMe " + nick).length()
-											+ 1,
-									str.indexOf(
-											":",
-											str.indexOf("$ConnectToMe " + nick)
-													+ ("$ConnectToMe " + nick)
-															.length() + 1));
-							portUser = Integer.parseInt(str.substring(
-									str.indexOf(
-											":",
-											str.indexOf("$ConnectToMe " + nick)
-													+ ("$ConnectToMe " + nick)
-															.length() + 1) + 1,
-									str.indexOf("|", str.indexOf(
-											":",
-											str.indexOf("$ConnectToMe " + nick)
-													+ ("$ConnectToMe " + nick)
-															.length() + 1))));
-							break;
-						}
-						p2preq = new byte[1024 * 10];
-						retr = retr - 1;
-						if (retr == 0)
+							str = str
+									.substring(
+											str.indexOf("$MyNick"),
+											str.indexOf("|",
+													str.indexOf("$ADCSND")) + 1);
+							bytes_read = bytes_read - str.length();
+						} else
 						{
-							errorDC = true;
-							dcErrorTxt="No answer from User";
-							throw new NullPointerException(
-									"No answer from User");
+							str = "";
 						}
+						if (urlsize < maxFile)
+						{
+							try
+							{
+								os = new RandomAccessFile(file1, "rwd");
+								os.seek(request._rangePosition);
+								os.write(p2preq, str.length(), bytes_read);
+								sendByte += bytes_read;
+							} catch (FileNotFoundException e2)
+							{
+								e2.printStackTrace();
+							}
+						}
+						sckPlayer.getOutputStream().write(p2preq, str.length(),
+								bytes_read);
+						p2preq = new byte[1448 * 50];
+						while (((bytes_read = sckUser.getInputStream().read(
+								p2preq)) != -1)
+								&& (seek == false)
+								&& (mMediaFilePath == newPath))
+						{
+							if (os != null)
+							{
+								os.write(p2preq, 0, bytes_read);
+								sendByte += bytes_read;
+							}
+							sckPlayer.getOutputStream().write(p2preq, 0,
+									bytes_read);
+						}
+						sckPlayer.getOutputStream().flush();
 					}
-					sckUser = new Socket();
-					sckUser.setSoTimeout(1500);
-					InetSocketAddress p2padrr1 = new InetSocketAddress(ipUser,
-							portUser);
-					sckUser.connect(p2padrr1);
-					sckUser.getOutputStream()
-							.write(("$MyNick "
-									+ nick
-									+ "|$Lock EXTENDEDPROTOCOLABCABCABCABCABCABC Pk=DCPLUSPLUS0.785ABCABCRef=dchub://"
-									+ Hub
-									+ "|$Supports MiniSlots ADCGet TTHL TTHF|$Direction Download 7777|$Key 牙盃A 驯崩򣶖 0 0 0 0 0|"
-									+ "$ADCGET file TTH/" + TTH + " "
-									+ request._rangePosition + " -1|")
-									.getBytes());
-					sckUser.getOutputStream().flush();
-					// header
-					if ((request._rangePosition > 0)
-							|| (request._overRange == true))
-					{
-						header = "HTTP/1.1 206 Partial Content\r\nAccept-Ranges: bytes\r\nContent-Length: "
-								+ Long.toString(urlsize
-										- request._rangePosition)
-								+ "\r\nContent-Range: bytes "
-								+ Long.toString(request._rangePosition)
-								+ "-"
-								+ Long.toString(urlsize - 1)
-								+ "/"
-								+ urlsize
-								+ "\r\nContent-Type: application/octet-stream\r\n\r\n";
-					} else
-					{
-						header = "HTTP/1.1 200 OK\r\nAccept-Ranges: bytes\r\nContent-Length: "
-								+ Long.toString(urlsize)
-								+ "\r\nContent-Disposition: attachment\r\nContent-Type: application/octet-stream\r\n\r\n";
-					}
-					sckPlayer.getOutputStream().write(header.getBytes(), 0,
-							header.length());
-					// removes $ADCSND
-					p2preq = new byte[1024 * 10];
-					bytes_read = sckUser.getInputStream().read(p2preq);
-					str = new String(p2preq, CHARENCODING);
-					if (str.contains("$ADCSND"))
-					{
-						str = str.substring(str.indexOf("$MyNick"),
-								str.indexOf("|", str.indexOf("$ADCSND")) + 1);
-						bytes_read = bytes_read - str.length();
-					} else
-					{
-						str = "";
-					}
-					sendByte = sendByte + bytes_read;
-					os.write(p2preq, str.length(), bytes_read);
-					sckPlayer.getOutputStream().write(p2preq, str.length(),
-							bytes_read);
-					seek = false;
-					while (((bytes_read = sckUser.getInputStream().read(p2preq)) != -1)
-							&& (seek == false) && (mMediaFilePath == newPath))
-					{
-						os.write(p2preq, 0, bytes_read);
-						sendByte = sendByte + bytes_read;
-						sckPlayer.getOutputStream()
-								.write(p2preq, 0, bytes_read);
-					}
-					sckPlayer.getOutputStream().flush();
 				} catch (Exception e3)
 				{
 					e3.printStackTrace();
@@ -749,13 +964,6 @@ public class HttpGetProxy
 						error = true;
 						sendToFile();
 					}
-				}
-				try
-				{
-					os = new RandomAccessFile(file1, "rwd");
-				} catch (FileNotFoundException e2)
-				{
-					e2.printStackTrace();
 				}
 				try
 				{
@@ -778,10 +986,23 @@ public class HttpGetProxy
 							}
 						}
 					}
+					if (urlsize < maxFile)
+					{
+						try
+						{
+							os = new RandomAccessFile(file1, "rwd");
+						} catch (FileNotFoundException e2)
+						{
+							e2.printStackTrace();
+						}
+					}
 					if (request._rangePosition > 0)
 					{
 						mFTPClient.setRestartOffset(request._rangePosition);
-						os.seek(request._rangePosition);
+						if (os != null)
+						{
+							os.seek(request._rangePosition);
+						}
 					}
 					ftp = mFTPClient.retrieveFileStream(remotePath);
 				} catch (Exception e)
@@ -795,7 +1016,7 @@ public class HttpGetProxy
 					{
 						if (connect() == false)
 						{
-							error = true; 
+							error = true;
 							sendToFile();
 						} else
 						{
@@ -824,7 +1045,10 @@ public class HttpGetProxy
 							{
 								mFTPClient
 										.setRestartOffset(request._rangePosition);
-								os.seek(request._rangePosition);
+								if (os != null)
+								{
+									os.seek(request._rangePosition);
+								}
 							}
 							ftp = mFTPClient.retrieveFileStream(remotePath);
 							if ((ftp == null) || (urlsize == 0))
@@ -869,8 +1093,11 @@ public class HttpGetProxy
 							&& ((bytes_read = ftp.read(remote_reply)) != -1)
 							&& (seek == false) && (mMediaFilePath == newPath))
 					{
-						os.write(remote_reply, 0, bytes_read);
-						sendByte += bytes_read;
+						if (os != null)
+						{
+							os.write(remote_reply, 0, bytes_read);
+							sendByte += bytes_read;
+						}
 						sckPlayer.getOutputStream().write(remote_reply, 0,
 								bytes_read);
 					}
@@ -903,7 +1130,6 @@ public class HttpGetProxy
 						sckPlayer.setSoTimeout(1500);
 						sckServer.setSoTimeout(1500); // without this flac not work.
 						error = false;
-						os = new RandomAccessFile(file1, "rwd");
 					} else
 					{
 						// MediaPlayer's request is invalid
@@ -926,8 +1152,11 @@ public class HttpGetProxy
 							{
 								// When you drag the progress bar, easy this
 								// exception, to disconnect and reconnect
-								os.write(remote_reply, 0, bytes_read);
-								sendByte += bytes_read;
+								if (os != null)
+								{
+									os.write(remote_reply, 0, bytes_read);
+									sendByte += bytes_read;
+								}
 								utils.sendToMP(remote_reply, bytes_read);
 							} catch (Exception e)
 							{
@@ -940,6 +1169,10 @@ public class HttpGetProxy
 						if (proxyResponse._duration > 0)
 						{
 							urlsize = proxyResponse._duration;
+							if (urlsize < maxFile)
+							{
+								os = new RandomAccessFile(file1, "rwd");
+							}
 						}
 						sentResponseHeader = true;
 						// send http header to mediaplayer
@@ -948,10 +1181,13 @@ public class HttpGetProxy
 						if (proxyResponse._other != null)
 						{
 							utils.sendToMP(proxyResponse._other);
-							os.seek(proxyResponse._currentPosition);
-							os.write(proxyResponse._other, 0,
-									proxyResponse._other.length);
-							sendByte += proxyResponse._other.length;
+							if (os != null)
+							{
+								os.seek(proxyResponse._currentPosition);
+								os.write(proxyResponse._other, 0,
+										proxyResponse._other.length);
+								sendByte += proxyResponse._other.length;
+							}
 						}
 					}
 				} catch (Exception e)
