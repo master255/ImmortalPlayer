@@ -1,4 +1,4 @@
-ImmortalPlayer 3.0 (audio/video, HTTP/FTP/NMDC (peering))
+ImmortalPlayer 3.1 (audio/video, HTTP/FTP/NMDC (peering))
 ==============
 
 Complex logic, but it's simplest way to organize player with cache on sdcard and with play in background.
