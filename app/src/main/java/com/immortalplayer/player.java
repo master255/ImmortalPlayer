@@ -105,7 +105,7 @@ public class player extends TextureView implements
 			};
 			if (mMediaController != null)
 			{
-				//mMediaController.setEnabled(true);
+				mMediaController.setEnabled(true);
 			}
 			if (mOnPreparedListener != null)
 				mOnPreparedListener.onPrepared(mp);
