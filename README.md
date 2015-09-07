@@ -1,4 +1,4 @@
-ImmortalPlayer 3.1 (audio/video, HTTP/FTP/NMDC (peering))
+ImmortalPlayer 3.5 (audio/video, HTTP/FTP/NMDC (peering))
 ==============
 
 Complex logic, but it's simplest way to organize player with cache on sdcard and with play in background.
@@ -16,6 +16,7 @@ Features:
 9. The player plays the corrupted files.
 10. Player API 16+, Proxy API 14+.
 11. Automatically search and streaming current file from peering networks!
+12. DoubleDomain, DoubleBuffer and Dynamic Network technologies.
 
 Try from play market Android 4.1.1+ (api:16+): https://play.google.com/store/apps/details?id=com.immortalplayer
 
