@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/ImmortalPlayer.iml" filepath="$PROJECT_DIR$/ImmortalPlayer.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/videoplayertexture.iml" filepath="$PROJECT_DIR$/videoplayertexture.iml" />
     </modules>
   </component>
 </project>
