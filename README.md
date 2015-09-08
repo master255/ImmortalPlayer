@@ -25,7 +25,7 @@ https://play.google.com/store/apps/details?id=com.medialibrary.mycollection
 
 New technologies (Description):
 
-DoubleDomain - To ensure uninterrupted access to the site are used the second domain. 
+<b>DoubleDomain</b> - To ensure uninterrupted access to the site are used the second domain. 
 How it works - when there is no access to the site A program starts to work with the site B. The list of relevant sites specified in the program or on a special website. For the user, this technology is transparent, and it always seems to open the site A
 
 DoubleBuffer - one buffer for two. With simultaneous playback and downloading the same file, if the downloaded part more than you need to play, it uses local part of the downloaded file to play the media.
