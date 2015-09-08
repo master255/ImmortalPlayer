@@ -23,7 +23,7 @@ Try from play market Android 4.1.1+ (api:16+): https://play.google.com/store/app
 Known programs work on ImmortalPlayer:
 https://play.google.com/store/apps/details?id=com.medialibrary.mycollection
 
-<b>New technologies</b> (Description):
+<h3>New technologies (Description):</h3>
 
 <b>DoubleDomain</b> - To ensure uninterrupted access to the site are used the second domain. 
 How it works - when there is no access to the site A program starts to work with the site B. The list of relevant sites specified in the program or on a special website. For the user, this technology is transparent, and it always seems to open the site A
