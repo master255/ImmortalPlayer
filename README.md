@@ -30,4 +30,4 @@ How it works - when there is no access to the site A program starts to work with
 
 <b>DoubleBuffer</b> - one buffer for two. With simultaneous playback and downloading the same file, if the downloaded part more than you need to play, it uses local part of the downloaded file to play the media.
 
-<b>Dynamic Network</b> - enabling and disabling 2G \ 3G \ 4G manages one program. Switching network occurs only when necessary to transfer data. This greatly reduces power consumption and electromagnetic radiation from the device.
+<b>Dynamic Network</b> - enabling and disabling 2G \ 3G \ 4G manages one program. Enabling network occurs only when necessary to transfer data. This greatly reduces power consumption and electromagnetic radiation from the device.
