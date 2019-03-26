@@ -1,3 +1,5 @@
+Sorry, this project is outdated and no longer supported. The next version is commercial. For all purchase questions, please contact me in any convenient way. You can see the demonstration of new algorithm in the application https://play.google.com/store/apps/details?id=com.medialibrary.mycollection
+
 ImmortalPlayer 3.5 (audio/video, HTTP/FTP/NMDC (peering))
 ==============
 
