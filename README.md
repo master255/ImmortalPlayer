@@ -1,4 +1,4 @@
-Sorry, this project is outdated and no longer supported. The next version is commercial. For all purchase questions, please contact me in any convenient way. You can see the demonstration of new algorithm in the application https://play.google.com/store/apps/details?id=com.medialibrary.mycollection
+Sorry, this project is outdated and no longer supported. The next version is commercial. For all purchase questions, please contact me at masters@inbox.ru. You can see the demonstration of new algorithm in the application https://play.google.com/store/apps/details?id=com.media.library
 
 ImmortalPlayer 3.5 (audio/video, HTTP/FTP/NMDC (peering))
 ==============
@@ -23,7 +23,7 @@ Features:
 Try from play market Android 4.1.1+ (api:16+): https://play.google.com/store/apps/details?id=com.immortalplayer
 
 Known programs work on ImmortalPlayer:
-https://play.google.com/store/apps/details?id=com.medialibrary.mycollection
+https://play.google.com/store/apps/details?id=com.media.library
 
 <h3>New technologies (Description):</h3>
 
